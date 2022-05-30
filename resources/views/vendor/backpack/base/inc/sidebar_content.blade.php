@@ -11,3 +11,5 @@
     </ul>
 </li>
 
+
+<li class='nav-item'><a class='nav-link' href='{{ backpack_url('vacancy') }}'><i class='nav-icon la la-question'></i> Vacancies</a></li>
