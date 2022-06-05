@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\VacancyRequest;
+use App\Models\Candidate;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use App\Http\Controllers\Admin\CandidateCrudController;
 
 /**
  * Class VacancyCrudController
@@ -18,6 +20,8 @@ class VacancyCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation { show as traitShow; }
+
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -29,6 +33,7 @@ class VacancyCrudController extends CrudController
         CRUD::setModel(\App\Models\Vacancy::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/vacancy');
         CRUD::setEntityNameStrings('vacancy', 'vacancies');
+        /**$this->crud->setShowView('vacancies.show');*/
     }
 
     /**
@@ -69,22 +74,23 @@ class VacancyCrudController extends CrudController
             'options'     => [
                 'begin' => 'On accepted',
                 'stop' => 'Closed, check reason',
-                ''
             ]
         ]);
-        /**
-         * Columns can be defined using the fluent syntax or array syntax:
-         * - CRUD::column('price')->type('number');
-         * - CRUD::addColumn(['name' => 'price', 'type' => 'number']);
-         */
+
+        $this->crud->query->withCount('candidate');
+        $this->crud->addColumn([
+            'label'     => trans('backpack::permissionmanager.users'),
+            'type'      => 'text',
+            'name'      => 'candidate_count',
+            'wrapper'   => [
+                'href' => function ($crud, $column, $entry, $related_key) {
+                    return backpack_url('candidate?vacancy='.$entry->getKey());
+                },
+            ],
+            'suffix'    => ' '.strtolower('Candidates'),
+        ]);
     }
 
-    /**
-     * Define what happens when the Create operation is loaded.
-     *
-     * @see https://backpackforlaravel.com/docs/crud-operation-create
-     * @return void
-     */
     protected function setupCreateOperation()
     {
         CRUD::setValidation(VacancyRequest::class);
@@ -92,20 +98,8 @@ class VacancyCrudController extends CrudController
         $this->crud->addFields(['name', 'description']);
         $this->crud->field('status')->type('hidden')->default('begin');
         $this->crud->field('author_id')->type('hidden')->default($user->id);
-
-        /**
-         * Fields can be defined using the fluent syntax or array syntax:
-         * - CRUD::field('price')->type('number');
-         * - CRUD::addField(['name' => 'price', 'type' => 'number']));
-         */
     }
 
-    /**
-     * Define what happens when the Update operation is loaded.
-     *
-     * @see https://backpackforlaravel.com/docs/crud-operation-update
-     * @return void
-     */
     protected function setupUpdateOperation()
     {
         $this->crud->addField([

@@ -5,6 +5,8 @@ namespace App\Models;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Permission\PermissionRegistrar;
 
 class Vacancy extends Model
 {
@@ -32,14 +34,23 @@ class Vacancy extends Model
     */
 
     public function author() {
-        return $this->belongsTo(User::class, 'id');
+        return $this->belongsTo(User::class, 'author_id', 'id');
     }
 
     public function responsible() {
-        return $this->belongsTo(User::class, 'id')
+        return $this->belongsTo(User::class, 'responsible_id', 'id')
             ->withDefault([
-                'name'=>'null'
+                'name'=>'-----'
             ]);
+    }
+
+    public function candidate() {
+        return $this->belongsToMany(
+            Candidate::class,
+            'vacancy_candidate',
+            'vacancy_id',
+            'candidate_id'
+        );
     }
 
     /*

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\CandidateRequest;
+use App\Models\Candidate;
+use App\Models\Vacancy;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -21,7 +23,7 @@ class CandidateCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
-     * 
+     *
      * @return void
      */
     public function setup()
@@ -33,68 +35,55 @@ class CandidateCrudController extends CrudController
 
     /**
      * Define what happens when the List operation is loaded.
-     * 
+     *
      * @see  https://backpackforlaravel.com/docs/crud-operation-list-entries
      * @return void
      */
     protected function setupListOperation()
     {
-        CRUD::addColumn([
-            'name' => 'name',
-            'label' => 'Name'
+        CRUD::addColumns([
+            [
+                'name' => 'name',
+                'label' => 'Name'
+            ],
+
+            [
+                'name' => 'second_name',
+                'label' => 'Second name'
+            ],
+
+            [
+                'name' => 'patronymic',
+                'label' => 'Patronymic'
+            ],
+            [
+                'label' => 'Vacancy',
+                'type'  => 'select_multiple',
+                'name'  => 'vacancy',
+                'entity' => 'vacancy',
+                'attribute' => 'name',
+                'model' => 'App\Model\Vacancy'
+            ]
         ]);
 
-        CRUD::addColumn([
-            'name' => 'second_name',
-            'label' => 'Second name'
-        ]);
-
-        CRUD::addColumn([
-            'name' => 'patronymic',
-            'label' => 'Patronymic'
-        ]);
-
-        CRUD::addColumn([
-            'name' => 'city',
-            'label' => 'City'
-        ]);
-
-        CRUD::addColumn([
-            'name' => 'phone_number',
-            'label' => 'Phone number'
-        ]);
-
-        CRUD::addColumn([
-            'name' => 'email',
-            'label' => 'Email'
-        ]);
-
-        CRUD::addColumn([
-            'name' => 'desired_position',
-            'label' => 'Desired position'
-        ]);
-
-        CRUD::addColumn([
-            'name' => 'desired_income',
-            'label' => 'Desired income'
-        ]);
-
-        CRUD::addColumn([
-            'name' => 'work_experience',
-            'label' => 'Work experience'
-        ]);
-
-
-        /**
-         * Columns can be defined using the fluent syntax or array syntax:
-         * - CRUD::column('price')->type('number');
-         * - CRUD::addColumn(['name' => 'price', 'type' => 'number']); 
-         */
+        $this->crud->addFilter(
+            [
+                'name'  => 'vacancy',
+                'type'  => 'dropdown',
+                'label' => 'vacancy'
+            ],
+            Vacancy::all()->pluck('name', 'id')->toArray(),
+            function ($value) { // if the filter is active
+                $this->crud->addClause('whereHas', 'vacancy', function ($query) use ($value) {
+                    $query->where('vacancy_id', '=', $value);
+                });
+            }
+        );
     }
 
     /**
      * Define what happens when the Create operation is loaded.
-     * 
+     *
      * @see https://backpackforlaravel.com/docs/crud-operation-create
      * @return void
      */
@@ -156,21 +145,67 @@ class CandidateCrudController extends CrudController
             'label' => 'Work experience'
         ]);
 
+        $this->crud->addField([
+                'label'     => 'Vacancy',
+                'type'      => 'checklist',
+                'name'      => 'vacancy',
+                'entity'    => 'vacancy',
+                'attribute' => 'name',
+                'model'     => "App\Models\Vacancy",
+                'pivot'     => true,
+            ]
+        );
+
         /**
          * Fields can be defined using the fluent syntax or array syntax:
          * - CRUD::field('price')->type('number');
-         * - CRUD::addField(['name' => 'price', 'type' => 'number'])); 
+         * - CRUD::addField(['name' => 'price', 'type' => 'number']));
          */
     }
 
     /**
      * Define what happens when the Update operation is loaded.
-     * 
+     *
      * @see https://backpackforlaravel.com/docs/crud-operation-update
      * @return void
      */
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
+    }
+
+    protected function setupShowOperation() {
+        $this->setupListOperation();
+
+        $this->crud->addColumns([
+            [
+                'name' => 'city',
+                'label' => 'City'
+            ],
+            [
+                'name' => 'phone_number',
+                'label' => 'Phone number'
+            ],
+
+            [
+                'name' => 'email',
+                'label' => 'Email'
+            ],
+
+            [
+                'name' => 'desired_position',
+                'label' => 'Desired position'
+            ],
+
+            [
+                'name' => 'desired_income',
+                'label' => 'Desired income'
+            ],
+
+            [
+                'name' => 'work_experience',
+                'label' => 'Work experience'
+            ]
+        ]);
     }
 }

@@ -13,6 +13,4 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/check', function () {
-    var_dump(backpack_user()->id);
-});
+

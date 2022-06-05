@@ -29,6 +29,16 @@ class Candidate extends Model
     |--------------------------------------------------------------------------
     */
 
+    public function vacancy()
+    {
+        return $this->belongsToMany(
+            Vacancy::class,
+            'vacancy_candidate',
+            'candidate_id',
+            'vacancy_id'
+        );
+    }
+
     /*
     |--------------------------------------------------------------------------
     | RELATIONS
