@@ -42,6 +42,9 @@ class FileManagerCrudController extends CrudController
     protected function setupListOperation()
     {
 
+        CRUD::addColumn(
+            ['name' => 'id', 'type' => 'number'],
+        );
 
         /**
          * Columns can be defined using the fluent syntax or array syntax:
