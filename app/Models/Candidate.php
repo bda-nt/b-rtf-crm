@@ -31,11 +31,9 @@ class Candidate extends Model
 
     public function vacancy()
     {
-        return $this->belongsToMany(
+        return $this->belongsTo(
             Vacancy::class,
-            'vacancy_candidate',
-            'candidate_id',
-            'vacancy_id'
+            'vacancy_id',
         );
     }
 

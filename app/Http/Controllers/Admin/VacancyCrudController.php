@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\VacancyRequest;
 use App\Models\Candidate;
+use App\Models\User;
+use App\Models\Vacancy;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Http\Controllers\Admin\CandidateCrudController;
@@ -44,40 +46,10 @@ class VacancyCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-        $this->crud->addColumn([
-            'name'=>'name',
-            'label'=>'Name'
-        ]);
-
-        $this->crud->addColumn([
-            'label'=>'Author',
-            'type'=>'select',
-            'name'=>'author_id',
-            'entity'=>'author',
-            'attribute'=>'name',
-            'model'=>'App\Models\User'
-        ]);
-
-        $this->crud->addColumn([
-            'label'=>'Responsible',
-            'type'=>'select',
-            'name'=>'responsible_id',
-            'entity'=>'responsible',
-            'attribute'=>'name',
-            'model'=>'App\Models\User'
-        ]);
-
-        $this->crud->addColumn([
-            'name'        => 'status',
-            'label'       => 'Status',
-            'type'        => 'radio',
-            'options'     => [
-                'begin' => 'On accepted',
-                'stop' => 'Closed, check reason',
-            ]
-        ]);
+        $this->baseColumns();
 
         $this->crud->query->withCount('candidate');
+
         $this->crud->addColumn([
             'label'     => trans('backpack::permissionmanager.users'),
             'type'      => 'text',
@@ -89,6 +61,8 @@ class VacancyCrudController extends CrudController
             ],
             'suffix'    => ' '.strtolower('Candidates'),
         ]);
+
+        $this->vacancyFilters();
     }
 
     protected function setupCreateOperation()
@@ -96,23 +70,14 @@ class VacancyCrudController extends CrudController
         CRUD::setValidation(VacancyRequest::class);
         $user = backpack_user();
         $this->crud->addFields(['name', 'description']);
-        $this->crud->field('status')->type('hidden')->default('begin');
+        $this->crud->field('status')->type('hidden')->default('0');
         $this->crud->field('author_id')->type('hidden')->default($user->id);
     }
 
     protected function setupUpdateOperation()
     {
-        $this->crud->addField([
-            'name'        => 'status', // the name of the db column
-            'label'       => 'Status', // the input label
-            'type'        => 'radio',
-            'options'     => [
-                'stop'=> "Vacancy stopped",
-                'start' => "Accepted, waiting responsible",
-                'in_work'=> "In work",
-                'end'=>'Vacancy closed'
-            ]
-        ]);
+        $this->availableForms();
+
     }
 
     protected function setupShowOperation()
@@ -123,5 +88,135 @@ class VacancyCrudController extends CrudController
             'label'=>'Reason',
             'type'=>'text'
         ]);
+    }
+
+    /**
+     * @return void
+     */
+    protected function baseColumns(): void
+    {
+        $this->crud->addColumn([
+            'name' => 'name',
+            'label' => 'Name'
+        ]);
+
+        $this->crud->addColumn([
+            'label' => 'Author',
+            'type' => 'select',
+            'name' => 'author_id',
+            'entity' => 'author',
+            'attribute' => 'name',
+            'model' => 'App\Models\User'
+        ]);
+
+        $this->crud->addColumn([
+            'label' => 'Responsible',
+            'type' => 'select',
+            'name' => 'responsible_id',
+            'entity' => 'responsible',
+            'attribute' => 'name',
+            'model' => 'App\Models\User'
+        ]);
+
+        $this->crud->addColumn([
+            'name' => 'status',
+            'label' => 'Status',
+            'type' => 'radio',
+            'options' => [
+                '-1' => 'Vacancy closed',
+                '0' => 'Awaiting a decision',
+                '1' => 'Awaiting responsible',
+                '2' => 'In work',
+                '4' => 'Vacancy closed'
+            ]
+        ]);
+    }
+
+    /**
+     * @return void
+     */
+    protected function vacancyFilters(): void
+    {
+        $this->crud->addFilter(
+            [
+                'name' => 'status',
+                'type' => 'dropdown',
+            ],
+            [
+                -1 => 'Declined',
+                0 => 'Waiting a decision',
+                1 => 'Waiting responsible',
+                2 => 'In work',
+                4 => 'Closed'
+            ],
+            function ($value) {
+                $this->crud->addClause('where', 'status', $value);
+            }
+        );
+
+        $this->crud->addFilter(
+            [
+                'name' => 'responsible',
+                'type' => 'select2',
+            ],
+            User::all()->pluck('name', 'id')->toArray(),
+            function ($value) {
+                $this->crud->addClause('where', 'responsible_id', $value);
+            }
+        );
+
+        $this->crud->addFilter(
+            [
+                'name' => 'author',
+                'type' => 'select2'
+            ],
+            User::all()->pluck('name', 'id')->toArray(),
+            function ($value) {
+                $this->crud->addClause('where', 'author_id', $value);
+            }
+        );
+    }
+
+    /**
+     * @return void
+     */
+    protected function availableForms(): void
+    {
+        if (backpack_user()->hasRole('superiors')) {
+            $this->crud->addField([
+                'name' => 'status',
+                'label' => 'Status',
+                'type' => 'radio',
+                'options' => [
+                    '-1' => "Decline",
+                    '1' => "Accepted, waiting responsible",
+                ]
+            ]);
+
+            $this->crud->addField([
+                'name' => 'reason',
+                'label' => 'Reason (if decline)'
+            ]);
+        } else if (backpack_user()->hasRole('superiors_department')) {
+            $this->crud->addField([
+                'name' => 'status',
+                'label' => 'Status',
+                'type' => 'radio',
+                'options' => [
+                    '2' => "In work with candidate",
+                ]
+            ]);
+
+            $this->crud->addField([
+                'label' => 'Responsible',
+                'type' => 'select2_grouped',
+                'name' => 'responsible_id',
+                'entity' => 'responsible',
+                'attribute' => 'name',
+                'group_by' => 'roles',
+                'group_by_attribute' => 'name',
+                'group_by_relationship_back' => 'users',
+            ]);
+        }
     }
 }

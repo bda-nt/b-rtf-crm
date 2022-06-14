@@ -25,7 +25,8 @@ class CreateCandidateTable extends Migration
             $table->string('desired_position');
             $table->decimal('desired_income', $percision = 15, $scale = 2);
             $table->string('work_experience');
-
+            $table->foreignId('vacancy_id')->references('id')->on('vacancy');
+            $table->enum('status', ['-1', '0', '1'])->default('0');
             // $table->foreignId('photo_id')->nullable(true)->references('id')->on('');
             // $table->foreignId('summary')->references('id')->on('');
 

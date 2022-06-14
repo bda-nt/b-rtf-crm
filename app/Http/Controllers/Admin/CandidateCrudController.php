@@ -58,27 +58,26 @@ class CandidateCrudController extends CrudController
             ],
             [
                 'label' => 'Vacancy',
-                'type'  => 'select_multiple',
+                'type'  => 'select',
                 'name'  => 'vacancy',
                 'entity' => 'vacancy',
                 'attribute' => 'name',
                 'model' => 'App\Model\Vacancy'
+            ],
+            [
+                'label' => 'Status',
+                'type' => 'radio',
+                'name' => 'status',
+                'options' => [
+                    '-1' => 'Work, stopped failure',
+                    '0' => 'In work',
+                    '1' => 'Work, stopped accepted',
+                ]
             ]
         ]);
 
-        $this->crud->addFilter(
-            [
-                'name'  => 'vacancy',
-                'type'  => 'dropdown',
-                'label' => 'vacancy'
-            ],
-            Vacancy::all()->pluck('name', 'id')->toArray(),
-            function ($value) { // if the filter is active
-                $this->crud->addClause('whereHas', 'vacancy', function ($query) use ($value) {
-                    $query->where('vacancy_id', '=', $value);
-                });
-            }
-        );
+
+        $this->candidateFilters();
     }
 
     /**
@@ -91,6 +90,71 @@ class CandidateCrudController extends CrudController
     {
         CRUD::setValidation(CandidateRequest::class);
 
+        $this->baseFields();
+
+        CRUD::field('vacancy_id')->type('select')->model('App\Models\Vacancy')->attribute('name')->entity('vacancy');
+    }
+
+    /**
+     * Define what happens when the Update operation is loaded.
+     *
+     * @see https://backpackforlaravel.com/docs/crud-operation-update
+     * @return void
+     */
+    protected function setupUpdateOperation()
+    {
+        $this->crud->addField([
+            'name'=>'status',
+            'label' => 'Status',
+            'type' => 'radio',
+            'options' => [
+                '-1' => 'Stop, decline',
+                '0' => 'In work',
+                '1' => 'Stop, submit'
+            ]
+        ]);
+    }
+
+    protected function setupShowOperation() {
+        $this->setupListOperation();
+
+        $this->crud->addColumns([
+            [
+                'name' => 'city',
+                'label' => 'City'
+            ],
+            [
+                'name' => 'phone_number',
+                'label' => 'Phone number'
+            ],
+
+            [
+                'name' => 'email',
+                'label' => 'Email'
+            ],
+
+            [
+                'name' => 'desired_position',
+                'label' => 'Desired position'
+            ],
+
+            [
+                'name' => 'desired_income',
+                'label' => 'Desired income'
+            ],
+
+            [
+                'name' => 'work_experience',
+                'label' => 'Work experience'
+            ],
+        ]);
+    }
+
+    /**
+     * @return void
+     */
+    protected function baseFields(): void
+    {
         CRUD::addField([
             'name' => 'name',
             'type' => 'text',
@@ -144,68 +208,40 @@ class CandidateCrudController extends CrudController
             'type' => 'text',
             'label' => 'Work experience'
         ]);
-
-        $this->crud->addField([
-                'label'     => 'Vacancy',
-                'type'      => 'checklist',
-                'name'      => 'vacancy',
-                'entity'    => 'vacancy',
-                'attribute' => 'name',
-                'model'     => "App\Models\Vacancy",
-                'pivot'     => true,
-            ]
-        );
-
-        /**
-         * Fields can be defined using the fluent syntax or array syntax:
-         * - CRUD::field('price')->type('number');
-         * - CRUD::addField(['name' => 'price', 'type' => 'number']));
-         */
     }
 
     /**
-     * Define what happens when the Update operation is loaded.
-     *
-     * @see https://backpackforlaravel.com/docs/crud-operation-update
      * @return void
      */
-    protected function setupUpdateOperation()
+    protected function candidateFilters(): void
     {
-        $this->setupCreateOperation();
-    }
-
-    protected function setupShowOperation() {
-        $this->setupListOperation();
-
-        $this->crud->addColumns([
+        $this->crud->addFilter(
             [
-                'name' => 'city',
-                'label' => 'City'
+                'name' => 'vacancy',
+                'type' => 'dropdown',
+                'label' => 'vacancy'
+            ],
+            Vacancy::all()->pluck('name', 'id')->toArray(),
+            function ($value) { // if the filter is active
+                $this->crud->addClause('whereHas', 'vacancy', function ($query) use ($value) {
+                    $query->where('vacancy_id', '=', $value);
+                });
+            }
+        );
+
+        $this->crud->addFilter(
+            [
+                'name' => 'status',
+                'type' => 'dropdown',
             ],
             [
-                'name' => 'phone_number',
-                'label' => 'Phone number'
+                -1 => 'Stopped, failure',
+                0 => 'In work',
+                1 => 'Stopped, accepted',
             ],
-
-            [
-                'name' => 'email',
-                'label' => 'Email'
-            ],
-
-            [
-                'name' => 'desired_position',
-                'label' => 'Desired position'
-            ],
-
-            [
-                'name' => 'desired_income',
-                'label' => 'Desired income'
-            ],
-
-            [
-                'name' => 'work_experience',
-                'label' => 'Work experience'
-            ]
-        ]);
+            function ($value) {
+                $this->crud->addClause('where', 'status', $value);
+            }
+        );
     }
 }

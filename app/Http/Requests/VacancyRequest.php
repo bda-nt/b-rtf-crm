@@ -25,7 +25,8 @@ class VacancyRequest extends FormRequest
     public function rules()
     {
         return [
-            // 'name' => 'required|min:5|max:255'
+            'name' => 'required|min:5|max:255',
+            'description' => 'required|min:5'
         ];
     }
 
@@ -49,7 +50,10 @@ class VacancyRequest extends FormRequest
     public function messages()
     {
         return [
-            //
+            'name.required'        => 'Write name of vacancy',
+            'name.min'             => 'Increase the length of the name vacancy',
+            'name.max'             => 'Shorten the name',
+            'description.required' => 'The vacancy must have a description'
         ];
     }
 }

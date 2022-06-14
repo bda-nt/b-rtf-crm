@@ -17,9 +17,10 @@ class CreateVacancyTable extends Migration
             $table->id();
             $table->foreignId('author_id')->references('id')->on('users');
             $table->foreignId('responsible_id')->nullable(true)->references('id')->on('users');
-            $table->enum('status', ['stop', 'begin', 'start', 'in_work', 'end'])->default('begin');
+            $table->enum('status', ['-1', '0', '1', '2', '4'])->default('0');
             $table->text('description');
             $table->timestamps();
+            $table->text('Reason')->nullable(true);
         });
     }
 
