@@ -44,20 +44,20 @@ class CandidateCrudController extends CrudController
         CRUD::addColumns([
             [
                 'name' => 'name',
-                'label' => 'Name'
+                'label' => 'Имя'
             ],
 
             [
                 'name' => 'second_name',
-                'label' => 'Second name'
+                'label' => 'Фамилия'
             ],
 
             [
                 'name' => 'patronymic',
-                'label' => 'Patronymic'
+                'label' => 'Отчество'
             ],
             [
-                'label' => 'Vacancy',
+                'label' => 'Вакансия',
                 'type'  => 'select',
                 'name'  => 'vacancy',
                 'entity' => 'vacancy',
@@ -65,13 +65,13 @@ class CandidateCrudController extends CrudController
                 'model' => 'App\Model\Vacancy'
             ],
             [
-                'label' => 'Status',
+                'label' => 'Статус',
                 'type' => 'radio',
                 'name' => 'status',
                 'options' => [
-                    '-1' => 'Work, stopped failure',
-                    '0' => 'In work',
-                    '1' => 'Work, stopped accepted',
+                    '-1' => 'Работа остановлена, отказ',
+                    '0' => 'В работе',
+                    '1' => 'Работа остановлена, принят',
                 ]
             ]
         ]);
@@ -92,7 +92,7 @@ class CandidateCrudController extends CrudController
 
         $this->baseFields();
 
-        CRUD::field('vacancy_id')->type('select')->model('App\Models\Vacancy')->attribute('name')->entity('vacancy');
+        CRUD::field('vacancy_id')->type('select')->model('App\Models\Vacancy')->attribute('name')->entity('vacancy')->label('Вакансия');
     }
 
     /**
@@ -105,12 +105,12 @@ class CandidateCrudController extends CrudController
     {
         $this->crud->addField([
             'name'=>'status',
-            'label' => 'Status',
+            'label' => 'Статус',
             'type' => 'radio',
             'options' => [
-                '-1' => 'Stop, decline',
-                '0' => 'In work',
-                '1' => 'Stop, submit'
+                '-1' => 'Остановлен, отклонен',
+                '0' => 'В работе',
+                '1' => 'Остановлен, принят'
             ]
         ]);
     }
@@ -121,31 +121,31 @@ class CandidateCrudController extends CrudController
         $this->crud->addColumns([
             [
                 'name' => 'city',
-                'label' => 'City'
+                'label' => 'Город'
             ],
             [
                 'name' => 'phone_number',
-                'label' => 'Phone number'
+                'label' => 'Телефон'
             ],
 
             [
                 'name' => 'email',
-                'label' => 'Email'
+                'label' => 'Почта'
             ],
 
             [
                 'name' => 'desired_position',
-                'label' => 'Desired position'
+                'label' => 'Желаемая должность'
             ],
 
             [
                 'name' => 'desired_income',
-                'label' => 'Desired income'
+                'label' => 'Желаемый доход'
             ],
 
             [
                 'name' => 'work_experience',
-                'label' => 'Work experience'
+                'label' => 'Опыт работы'
             ],
         ]);
     }
@@ -158,55 +158,55 @@ class CandidateCrudController extends CrudController
         CRUD::addField([
             'name' => 'name',
             'type' => 'text',
-            'label' => 'Name'
+            'label' => 'Имя'
         ]);
 
         CRUD::addField([
             'name' => 'second_name',
             'type' => 'text',
-            'label' => 'Second name'
+            'label' => 'Фамилия'
         ]);
 
         CRUD::addField([
             'name' => 'patronymic',
             'type' => 'text',
-            'label' => 'Patronymic'
+            'label' => 'Отчество'
         ]);
 
         CRUD::addField([
             'name' => 'city',
             'type' => 'text',
-            'label' => 'City'
+            'label' => 'Город'
         ]);
 
         CRUD::addField([
             'name' => 'phone_number',
             'type' => 'text',
-            'label' => 'Phone number'
+            'label' => 'Телефон'
         ]);
 
         CRUD::addField([
             'name' => 'email',
             'type' => 'email',
-            'label' => 'Email'
+            'label' => 'Почта'
         ]);
 
         CRUD::addField([
             'name' => 'desired_position',
             'type' => 'text',
-            'label' => 'Desired position'
+            'label' => 'Желаемая должность'
         ]);
 
         CRUD::addField([
             'name' => 'desired_income',
             'type' => 'number',
-            'label' => 'Desired income'
+            'label' => 'Желаемый доход'
         ]);
 
         CRUD::addField([
             'name' => 'work_experience',
             'type' => 'text',
-            'label' => 'Work experience'
+            'label' => 'Опыт работы'
         ]);
     }
 
@@ -219,7 +219,7 @@ class CandidateCrudController extends CrudController
             [
                 'name' => 'vacancy',
                 'type' => 'dropdown',
-                'label' => 'vacancy'
+                'label' => 'Вакансия'
             ],
             Vacancy::all()->pluck('name', 'id')->toArray(),
             function ($value) { // if the filter is active
@@ -233,11 +233,12 @@ class CandidateCrudController extends CrudController
             [
                 'name' => 'status',
                 'type' => 'dropdown',
+                'label' => 'Статус'
             ],
             [
-                -1 => 'Stopped, failure',
-                0 => 'In work',
-                1 => 'Stopped, accepted',
+                -1 => 'Остановлен, отказ',
+                0 => 'В работе',
+                1 => 'Остановлен, принят',
             ],
             function ($value) {
                 $this->crud->addClause('where', 'status', $value);

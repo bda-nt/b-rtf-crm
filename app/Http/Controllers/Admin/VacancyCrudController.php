@@ -51,7 +51,7 @@ class VacancyCrudController extends CrudController
         $this->crud->query->withCount('candidate');
 
         $this->crud->addColumn([
-            'label'     => trans('backpack::permissionmanager.users'),
+            'label'     => 'Кандидаты',
             'type'      => 'text',
             'name'      => 'candidate_count',
             'wrapper'   => [
@@ -59,7 +59,7 @@ class VacancyCrudController extends CrudController
                     return backpack_url('candidate?vacancy='.$entry->getKey());
                 },
             ],
-            'suffix'    => ' '.strtolower('Candidates'),
+            'suffix'    => ' '.strtolower('Кандидатов'),
         ]);
 
         $this->vacancyFilters();
@@ -69,7 +69,16 @@ class VacancyCrudController extends CrudController
     {
         CRUD::setValidation(VacancyRequest::class);
         $user = backpack_user();
-        $this->crud->addFields(['name', 'description']);
+        $this->crud->addFields([
+            [
+                'name' => 'name',
+                'label' => 'Название'
+            ],
+            [
+                'name' => 'description',
+                'label' => 'Описание'
+            ]
+        ]);
         $this->crud->field('status')->type('hidden')->default('0');
         $this->crud->field('author_id')->type('hidden')->default($user->id);
     }
@@ -85,7 +94,7 @@ class VacancyCrudController extends CrudController
         $this->setupListOperation();
         $this->crud->addColumn([
             'name'=>'reason',
-            'label'=>'Reason',
+            'label'=>'Причина',
             'type'=>'text'
         ]);
     }
@@ -97,11 +106,11 @@ class VacancyCrudController extends CrudController
     {
         $this->crud->addColumn([
             'name' => 'name',
-            'label' => 'Name'
+            'label' => 'Название'
         ]);
 
         $this->crud->addColumn([
-            'label' => 'Author',
+            'label' => 'Автор',
             'type' => 'select',
             'name' => 'author_id',
             'entity' => 'author',
@@ -110,7 +119,7 @@ class VacancyCrudController extends CrudController
         ]);
 
         $this->crud->addColumn([
-            'label' => 'Responsible',
+            'label' => 'Ответсвенный',
             'type' => 'select',
             'name' => 'responsible_id',
             'entity' => 'responsible',
@@ -120,14 +129,14 @@ class VacancyCrudController extends CrudController
 
         $this->crud->addColumn([
             'name' => 'status',
-            'label' => 'Status',
+            'label' => 'Статус',
             'type' => 'radio',
             'options' => [
-                '-1' => 'Vacancy closed',
-                '0' => 'Awaiting a decision',
-                '1' => 'Awaiting responsible',
-                '2' => 'In work',
-                '4' => 'Vacancy closed'
+                -1 => 'Отклонена',
+                0 => 'Ожидает решения',
+                1 => 'Ожидает ответсвенного',
+                2 => 'В работе',
+                4 => 'Закрыта',
             ]
         ]);
     }
@@ -141,13 +150,14 @@ class VacancyCrudController extends CrudController
             [
                 'name' => 'status',
                 'type' => 'dropdown',
+                'label' => 'Статус'
             ],
             [
-                -1 => 'Declined',
-                0 => 'Waiting a decision',
-                1 => 'Waiting responsible',
-                2 => 'In work',
-                4 => 'Closed'
+                -1 => 'Отклонена',
+                0 => 'Ожидает решения',
+                1 => 'Ожидает ответсвенного',
+                2 => 'В работе',
+                4 => 'Закрыта',
             ],
             function ($value) {
                 $this->crud->addClause('where', 'status', $value);
@@ -158,6 +168,7 @@ class VacancyCrudController extends CrudController
             [
                 'name' => 'responsible',
                 'type' => 'select2',
+                'label' => 'Ответсвенный',
             ],
             User::all()->pluck('name', 'id')->toArray(),
             function ($value) {
@@ -168,7 +179,8 @@ class VacancyCrudController extends CrudController
         $this->crud->addFilter(
             [
                 'name' => 'author',
-                'type' => 'select2'
+                'type' => 'select2',
+                'label' => 'Автор',
             ],
             User::all()->pluck('name', 'id')->toArray(),
             function ($value) {
@@ -185,17 +197,17 @@ class VacancyCrudController extends CrudController
         if (backpack_user()->hasRole('superiors')) {
             $this->crud->addField([
                 'name' => 'status',
-                'label' => 'Status',
+                'label' => 'Статус',
                 'type' => 'radio',
                 'options' => [
-                    '-1' => "Decline",
-                    '1' => "Accepted, waiting responsible",
+                    '-1' => "Отказ",
+                    '1' => "Принято, ожидает ответсвенного",
                 ]
             ]);
 
             $this->crud->addField([
                 'name' => 'reason',
-                'label' => 'Reason (if decline)'
+                'label' => 'Причина (если выбран отказ)'
             ]);
         } else if (backpack_user()->hasRole('superiors_department')) {
             $this->crud->addField([
